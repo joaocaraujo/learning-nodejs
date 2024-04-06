@@ -4,6 +4,14 @@ import fs from "fs";
 
 operation();
 
+function errorMessage(message) {
+  return chalk.bgRed.black(message);
+}
+
+function successMessage(message) {
+  return chalk.green(message);
+}
+
 function operation() {
   inquirer
     .prompt([
@@ -28,7 +36,7 @@ function operation() {
           createAccount();
           break;
         case "Depositar":
-          // Código para depositar
+          deposit();
           break;
         case "Consultar saldo":
           // Código para consultar saldo
@@ -37,7 +45,9 @@ function operation() {
           // Código para sacar
           break;
         case "Sair do sistema":
-          console.log(chalk.bgBlue.black("Obrigado por usar o Accounts, até mais!"));
+          console.log(
+            chalk.bgBlue.black("Obrigado por usar o Accounts, até mais!")
+          );
           process.exit();
           break;
         default:
@@ -50,7 +60,7 @@ function operation() {
 
 function createAccount() {
   console.log(chalk.bgGreen.black("Parabéns por escolher o nosso banco!"));
-  console.log(chalk.green("Defina as opções da sua conta a seguir"));
+  console.log(successMessage("Defina as opções da sua conta a seguir"));
   buildAccount();
 }
 
@@ -71,16 +81,14 @@ function buildAccount() {
       }
 
       if (fs.existsSync(`accounts/${accountName}.json`)) {
-        console.log(
-          chalk.bgRed.black("Essa conta já existe, escolha outro nome.")
-        );
+        console.log(errorMessage("Essa conta já existe, escolha outro nome."));
         buildAccount();
         return;
       }
 
       if (!accountName) {
         console.log(
-          chalk.bgRed.black(
+          errorMessage(
             "O nome da conta não pode estar vazio. Por favor, insira um nome válido."
           )
         );
@@ -96,8 +104,79 @@ function buildAccount() {
         }
       );
 
-      console.log(chalk.green("Conta criada com sucesso!"));
+      console.log(successMessage("Conta criada com sucesso!"));
       operation();
     })
     .catch((err) => console.log(err));
+}
+
+function deposit() {
+  inquirer
+    .prompt([
+      {
+        name: "accountName",
+        message: "Digite o nome da conta de destino: ",
+      },
+    ])
+    .then((answer) => {
+      const accountName = answer["accountName"];
+
+      if (!checkAccount(accountName)) {
+        return deposit();
+      }
+
+      inquirer
+        .prompt([
+          {
+            name: "amount",
+            message: "Digite o valor do depósito: ",
+          },
+        ])
+        .then((answer) => {
+          const amount = answer["amount"];
+
+          addAmount(accountName, amount);
+
+          operation();
+        });
+    });
+}
+
+function checkAccount(accountName) {
+  if (!fs.existsSync(`accounts/${accountName}.json`)) {
+    console.log(errorMessage("Essa conta não existe."));
+    return false;
+  }
+
+  return true;
+}
+
+function addAmount(accountName, amount) {
+  const accountData = getAccount(accountName);
+
+  if (!amount) {
+    console.log(errorMessage("O valor do depósito não pode ser vazio."));
+    return deposit();
+  }
+
+  accountData.balance = parseFloat(accountData.balance) + parseFloat(amount);
+
+  fs.writeFileSync(
+    `accounts/${accountName}.json`,
+    JSON.stringify(accountData),
+    function (err) {
+      console.log(err);
+    }
+  );
+
+  console.log(successMessage(`Depósito de R$${amount} realizado com sucesso!`));
+}
+
+function getAccount(accountName) {
+  const accountJson = fs.readFileSync(`accounts/${accountName}.json`, {
+    encoding: "utf-8",
+    flag: "r",
+  });
+
+  return JSON.parse(accountJson);
 }
