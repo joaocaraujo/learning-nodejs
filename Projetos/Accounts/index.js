@@ -23,8 +23,26 @@ function operation() {
     .then((answer) => {
       const action = answer["action"];
 
-      if (action == "Criar conta") {
-        createAccount();
+      switch (action) {
+        case "Criar conta":
+          createAccount();
+          break;
+        case "Depositar":
+          // Código para depositar
+          break;
+        case "Consultar saldo":
+          // Código para consultar saldo
+          break;
+        case "Sacar":
+          // Código para sacar
+          break;
+        case "Sair do sistema":
+          console.log(chalk.bgBlue.black("Obrigado por usar o Accounts, até mais!"));
+          process.exit();
+          break;
+        default:
+          // Código para ação desconhecida
+          break;
       }
     })
     .catch((err) => console.log(err));
@@ -55,6 +73,16 @@ function buildAccount() {
       if (fs.existsSync(`accounts/${accountName}.json`)) {
         console.log(
           chalk.bgRed.black("Essa conta já existe, escolha outro nome.")
+        );
+        buildAccount();
+        return;
+      }
+
+      if (!accountName) {
+        console.log(
+          chalk.bgRed.black(
+            "O nome da conta não pode estar vazio. Por favor, insira um nome válido."
+          )
         );
         buildAccount();
         return;
