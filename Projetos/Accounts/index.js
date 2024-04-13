@@ -42,7 +42,7 @@ function operation() {
           getAccountBalance();
           break;
         case "Sacar":
-          // Código para sacar
+          withdraw();
           break;
         case "Sair do sistema":
           console.log(
@@ -202,4 +202,65 @@ function getAccountBalance() {
       operation();
     })
     .catch((err) => console.log(err));
+}
+
+function withdraw() {
+  inquirer
+    .prompt([
+      {
+        name: "accountName",
+        message: "Qual o nome da sua conta?",
+      },
+    ])
+    .then((answer) => {
+      const accountName = answer["accountName"];
+
+      if (!checkAccount(accountName)) {
+        return withdraw();
+      }
+
+      const accountData = getAccount(accountName);
+
+      inquirer
+        .prompt([
+          {
+            name: "amount",
+            message: "Quanto deseja sacar?",
+          },
+        ])
+        .then((answer) => {
+          const amount = answer["amount"];
+
+          removeAmount(accountName, amount);
+        })
+        .catch((err) => console.log(err));
+    })
+    .catch((err) => console.log(err));
+}
+
+function removeAmount(accountName, amount) {
+  const accountData = getAccount(accountName);
+
+  if (!amount) {
+    console.log(errorMessage("O valor de saque não pode ser vazio."));
+    return withdraw();
+  }
+
+  if (accountData.balance < amount) {
+    console.log(errorMessage("Valor indisponível."));
+    return withdraw();
+  }
+
+  accountData.balance = parseFloat(accountData.balance) - parseFloat(amount);
+
+  fs.writeFileSync(
+    `accounts/${accountName}.json`,
+    JSON.stringify(accountData),
+    function (err) {
+      console.log(err);
+    }
+  );
+
+  console.log(successMessage(`Retirada de R$${amount} realizada com sucesso!`));
+  operation();
 }
