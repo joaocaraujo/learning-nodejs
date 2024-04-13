@@ -1,9 +1,9 @@
 # Course name: Node.js do Zero a Maestria com diversos Projetos
 Available at [www.udemy.com](www.udemy.com)
 
-##38 hours on-demand video
+## 38 hours on-demand video
   
-##Course program:
+## Course program:
 - Learn Node from basics to advanced
 - Learn the MVC pattern with Node
 - Node JS operations and integration with MySQL
